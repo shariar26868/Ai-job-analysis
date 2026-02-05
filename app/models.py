@@ -142,8 +142,6 @@
 #     timestamp: datetime
 
 
-
-
 from pydantic import BaseModel, Field
 from typing import Literal, Optional, List
 from datetime import datetime
