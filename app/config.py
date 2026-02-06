@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     # External Pricing API Configuration
     pricing_api_url: str = os.getenv(
         "PRICING_API_URL", 
-        "http://10.0.70.141:5030/api/pricing/all"
+        "http://206.162.244.131:5030/api/pricing/all"
     )
     pricing_api_timeout: int = int(os.getenv("PRICING_API_TIMEOUT", 10))
     
