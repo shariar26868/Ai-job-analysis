@@ -66,27 +66,27 @@ Get quotes from all available workers for a job.
   "original_description": "Install 5 LED downlights in kitchen",
   "priority": "standard",
   "currency": "GBP",
-  "estimated_hours": 3.5,
+  "estimatedHours": 3.5,
   "job_complexity": "moderate",
-  "ai_reasoning": "Job involves installing multiple LED downlights...",
+  "aiReasoning": "Job involves installing multiple LED downlights...",
   "worker_quotes": [
     {
-      "worker_name": "shahidul",
-      "worker_email": "shahidul@gmail.com",
-      "worker_location": "Bogura",
-      "worker_description": "this some thos fds",
-      "estimated_hours": 3.5,
-      "hourly_rate": 150.0,
-      "call_out_fee": 75.0,
-      "labour_cost": 525.0,
-      "emergency_uplift": null,
-      "total_quote": 600.0,
+      "workerName": "shahidul",
+      "workerEmail": "shahidul@gmail.com",
+      "workerLocation": "Bogura",
+      "workerDescription": "this some thos fds",
+      "estimatedHours": 3.5,
+      "hourlyRate": 150.0,
+      "callOutFee": 75.0,
+      "labourCost": 525.0,
+      "emergencyUplift": null,
+      "totalQuote": 600.0,
       "job_complexity": "moderate",
-      "match_score": 85.0,
-      "recommended_actions": ["Check ceiling access", "Verify power supply"]
+      "matchScore": 85.0,
+      "recommendedActions": ["Check ceiling access", "Verify power supply"]
     }
   ],
-  "total_workers": 2
+  "totalWorkers": 2
 }
 ```
 
@@ -108,10 +108,10 @@ Get AI analysis without worker-specific quotes.
 ```json
 {
   "job_description": "Replace broken light switch",
-  "estimated_hours": 1.0,
+  "estimatedHours": 1.0,
   "job_complexity": "simple",
-  "ai_reasoning": "Simple switch replacement requiring minimal work",
-  "recommended_actions": ["Check circuit breaker", "Test after installation"],
+  "aiReasoning": "Simple switch replacement requiring minimal work",
+  "recommendedActions": ["Check circuit breaker", "Test after installation"],
   "priority": "emergency",
   "status": "pending",
   "currency": "GBP"
@@ -127,17 +127,17 @@ Fetch all active workers from the pricing API.
 **Response:**
 ```json
 {
-  "total_workers": 2,
+  "totalWorkers": 2,
   "workers": [
     {
       "name": "shahidul",
       "email": "shahidul@gmail.com",
       "location": "Bogura",
       "description": "this some thos fds",
-      "hourly_rate": 150.0,
-      "call_out_fee": 75.0,
+      "hourlyRate": 150.0,
+      "callOutFee": 75.0,
       "minimum_charge": 150.0,
-      "emergency_uplift_percent": 50.0
+      "emergencyUplift_percent": 50.0
     }
   ]
 }
@@ -170,9 +170,9 @@ Get default pricing configuration.
 
 For each worker:
 ```
-Labour Cost = estimated_hours × worker.hourly_rate
-Emergency Uplift = labour_cost × worker.emergency_uplift (if emergency)
-Total Quote = worker.call_out_fee + labour_cost + emergency_uplift
+Labour Cost = estimatedHours × worker.hourlyRate
+Emergency Uplift = labourCost × worker.emergencyUplift (if emergency)
+Total Quote = worker.callOutFee + labourCost + emergencyUplift
 Total Quote = max(Total Quote, worker.minimum_charge)
 ```
 

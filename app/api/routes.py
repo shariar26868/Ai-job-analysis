@@ -69,10 +69,10 @@ async def quick_estimate(request: JobAnalysisRequest):
         # Build response
         response = JobAnalysisResponse(
             job_description=request.job_description,
-            estimated_hours=ai_analysis["estimated_hours"],
-            job_complexity=ai_analysis["job_complexity"],
-            ai_reasoning=ai_analysis["reasoning"],
-            recommended_actions=ai_analysis["recommended_actions"],
+            estimatedHours=ai_analysis["estimatedHours"],
+            jobComplexity=ai_analysis["jobComplexity"],
+            aiReasoning=ai_analysis["reasoning"],
+            recommendedActions=ai_analysis["recommendedActions"],
             priority="emergency" if request.is_emergency else "standard",
             status="pending",
             currency="GBP"
@@ -130,40 +130,40 @@ async def get_worker_quotes(request: JobAnalysisRequest):
         for worker in workers:
             quote_data = quote_service.calculate_quote_for_worker(
                 worker=worker,
-                estimated_hours=ai_analysis["estimated_hours"],
+                estimatedHours=ai_analysis["estimatedHours"],
                 is_emergency=request.is_emergency
             )
             
             worker_quote = WorkerQuote(
-                worker_name=quote_data["worker_name"],
-                worker_email=quote_data["worker_email"],
-                worker_location=quote_data["worker_location"],
-                worker_description=quote_data["worker_description"],
-                estimated_hours=quote_data["estimated_hours"],
-                hourly_rate=quote_data["hourly_rate"],
-                call_out_fee=quote_data["call_out_fee"],
-                labour_cost=quote_data["labour_cost"],
-                emergency_uplift=quote_data["emergency_uplift"],
-                total_quote=quote_data["total_quote"],
-                job_complexity=ai_analysis["job_complexity"],
-                match_score=85.0,  # Default match score, can be enhanced later
-                recommended_actions=ai_analysis["recommended_actions"]
+                workerName=quote_data["workerName"],
+                workerEmail=quote_data["workerEmail"],
+                workerLocation=quote_data["workerLocation"],
+                workerDescription=quote_data["workerDescription"],
+                estimatedHours=quote_data["estimatedHours"],
+                hourlyRate=quote_data["hourlyRate"],
+                callOutFee=quote_data["callOutFee"],
+                labourCost=quote_data["labourCost"],
+                emergencyUplift=quote_data["emergencyUplift"],
+                totalQuote=quote_data["totalQuote"],
+                jobComplexity=ai_analysis["jobComplexity"],
+                matchScore=85.0,  # Default match score, can be enhanced later
+                recommendedActions=ai_analysis["recommendedActions"]
             )
             worker_quotes.append(worker_quote)
         
         # Step 4: Sort by total price (lowest first)
-        worker_quotes.sort(key=lambda x: x.total_quote)
+        worker_quotes.sort(key=lambda x: x.totalQuote)
         
         # Build response
         response = MultipleWorkerQuotesResponse(
             original_description=request.job_description,
             priority="emergency" if request.is_emergency else "standard",
             currency="GBP",
-            estimated_hours=ai_analysis["estimated_hours"],
-            job_complexity=ai_analysis["job_complexity"],
-            ai_reasoning=ai_analysis["reasoning"],
+            estimatedHours=ai_analysis["estimatedHours"],
+            jobComplexity=ai_analysis["jobComplexity"],
+            aiReasoning=ai_analysis["reasoning"],
             worker_quotes=worker_quotes,
-            total_workers=len(worker_quotes)
+            totalWorkers=len(worker_quotes)
         )
         
         return response
@@ -181,9 +181,9 @@ async def get_worker_quotes(request: JobAnalysisRequest):
 async def get_pricing_info():
     """Get current pricing information (for reference only)"""
     return {
-        "base_hourly_rate": settings.base_hourly_rate,
-        "call_out_fee": settings.call_out_fee,
-        "emergency_uplift_percent": settings.emergency_uplift * 100,
+        "base_hourlyRate": settings.base_hourlyRate,
+        "callOutFee": settings.callOutFee,
+        "emergencyUplift_percent": settings.emergencyUplift * 100,
         "currency": "GBP"
     }
 
@@ -193,17 +193,17 @@ async def get_all_workers():
     try:
         workers = await pricing_service.get_all_workers()
         return {
-            "total_workers": len(workers),
+            "totalWorkers": len(workers),
             "workers": [
                 {
                     "name": w.name,
                     "email": w.email,
                     "location": w.location,
                     "description": w.description,
-                    "hourly_rate": w.hourly_rate,
-                    "call_out_fee": w.call_out_fee,
+                    "hourlyRate": w.hourlyRate,
+                    "callOutFee": w.callOutFee,
                     "minimum_charge": w.minimum_charge,
-                    "emergency_uplift_percent": w.emergency_uplift * 100
+                    "emergencyUplift_percent": w.emergencyUplift * 100
                 }
                 for w in workers
             ]

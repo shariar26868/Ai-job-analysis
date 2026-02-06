@@ -31,18 +31,18 @@ class PricingService:
                         continue
                     
                     # Convert emergencyUplift from percentage (e.g., 50) to decimal (e.g., 0.50)
-                    emergency_uplift_percent = item.get("emergencyUplift", 50)
-                    emergency_uplift_decimal = emergency_uplift_percent / 100.0
+                    emergencyUplift_percent = item.get("emergencyUplift", 50)
+                    emergencyUplift_decimal = emergencyUplift_percent / 100.0
                     
                     worker = WorkerDetails(
                         name=item.get("name", "Unknown Worker"),
                         email=item.get("email", ""),
                         location=item.get("location", ""),
                         description=item.get("description", ""),
-                        hourly_rate=float(item.get("hourlyRate", 100.0)),
-                        call_out_fee=float(item.get("callOutFee", 65.0)),
+                        hourlyRate=float(item.get("hourlyRate", 100.0)),
+                        callOutFee=float(item.get("callOutFee", 65.0)),
                         minimum_charge=float(item.get("minimumCharge", 65.0)),
-                        emergency_uplift=emergency_uplift_decimal
+                        emergencyUplift=emergencyUplift_decimal
                     )
                     workers.append(worker)
                 
@@ -84,10 +84,10 @@ class PricingService:
                 email="default@wirequote.com",
                 location="London",
                 description="Experienced electrician available for all types of electrical work",
-                hourly_rate=settings.base_hourly_rate,
-                call_out_fee=settings.call_out_fee,
-                minimum_charge=settings.call_out_fee,
-                emergency_uplift=settings.emergency_uplift
+                hourlyRate=settings.base_hourlyRate,
+                callOutFee=settings.callOutFee,
+                minimum_charge=settings.callOutFee,
+                emergencyUplift=settings.emergencyUplift
             )
         ]
 

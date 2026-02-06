@@ -33,9 +33,9 @@ class Settings(BaseSettings):
         return [origin.strip() for origin in self.allowed_origins.split(",")]
     
     # Business Logic Configuration
-    base_hourly_rate: float = 100.0  # £100 per hour base rate
-    emergency_uplift: float = 0.50  # 50% extra for emergency
-    call_out_fee: float = 65.0  # £65 call-out fee
+    base_hourlyRate: float = 100.0  # £100 per hour base rate
+    emergencyUplift: float = 0.50  # 50% extra for emergency
+    callOutFee: float = 65.0  # £65 call-out fee
     
     # External Pricing API Configuration
     pricing_api_url: str = os.getenv(

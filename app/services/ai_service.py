@@ -48,11 +48,11 @@ Return as JSON:
         {
             "job_title": "Kitchen LED Downlight Installation",
             "refined_description": "Install 5 LED downlights...",
-            "estimated_hours": 3.5,
-            "job_complexity": "moderate",
+            "estimatedHours": 3.5,
+            "jobComplexity": "moderate",
             "confidence_score": 95,
             "match_reason": "Description clearly specifies...",
-            "recommended_actions": ["action1", "action2"]
+            "recommendedActions": ["action1", "action2"]
         }
     ]
 }
@@ -84,10 +84,10 @@ Provide 2-4 different interpretations sorted by confidence."""
             # Validate and sanitize suggestions
             validated_suggestions = []
             for suggestion in suggestions[:4]:  # Max 4 suggestions
-                hours = float(suggestion.get("estimated_hours", 2.0))
+                hours = float(suggestion.get("estimatedHours", 2.0))
                 hours = max(0.5, min(100.0, hours))
                 
-                complexity = suggestion.get("job_complexity", "moderate")
+                complexity = suggestion.get("jobComplexity", "moderate")
                 if complexity not in ["simple", "moderate", "complex"]:
                     complexity = "moderate"
                 
@@ -97,11 +97,11 @@ Provide 2-4 different interpretations sorted by confidence."""
                 validated_suggestions.append({
                     "job_title": suggestion.get("job_title", "Electrical Work"),
                     "refined_description": suggestion.get("refined_description", job_description),
-                    "estimated_hours": round(hours, 1),
-                    "job_complexity": complexity,
+                    "estimatedHours": round(hours, 1),
+                    "jobComplexity": complexity,
                     "confidence_score": round(confidence, 1),
                     "match_reason": suggestion.get("match_reason", "Based on job description"),
-                    "recommended_actions": suggestion.get("recommended_actions", [])[:4]
+                    "recommendedActions": suggestion.get("recommendedActions", [])[:4]
                 })
             
             # Sort by confidence (highest first)
@@ -124,33 +124,33 @@ Provide 2-4 different interpretations sorted by confidence."""
             suggestions.append({
                 "job_title": "Power Socket Replacement",
                 "refined_description": "Replace or install power sockets",
-                "estimated_hours": 1.5,
-                "job_complexity": "simple",
+                "estimatedHours": 1.5,
+                "jobComplexity": "simple",
                 "confidence_score": 85,
                 "match_reason": "Job mentions sockets/plugs",
-                "recommended_actions": ["Check circuit capacity", "Test after installation"]
+                "recommendedActions": ["Check circuit capacity", "Test after installation"]
             })
         
         if any(word in description_lower for word in ['light', 'lighting', 'downlight', 'led']):
             suggestions.append({
                 "job_title": "Lighting Installation/Upgrade",
                 "refined_description": "Install or upgrade lighting fixtures",
-                "estimated_hours": 3.0,
-                "job_complexity": "moderate",
+                "estimatedHours": 3.0,
+                "jobComplexity": "moderate",
                 "confidence_score": 80,
                 "match_reason": "Job involves lighting work",
-                "recommended_actions": ["Verify ceiling access", "Check compatibility", "Schedule testing"]
+                "recommendedActions": ["Verify ceiling access", "Check compatibility", "Schedule testing"]
             })
         
         # Add a general comprehensive option
         suggestions.append({
             "job_title": "General Electrical Work",
             "refined_description": job_description,
-            "estimated_hours": 3.5,
-            "job_complexity": "moderate",
+            "estimatedHours": 3.5,
+            "jobComplexity": "moderate",
             "confidence_score": 70,
             "match_reason": "Standard electrical work estimate",
-            "recommended_actions": ["Site visit recommended", "Safety testing required"]
+            "recommendedActions": ["Site visit recommended", "Safety testing required"]
         })
         
         return {"suggestions": suggestions[:3]}
@@ -180,10 +180,10 @@ Consider factors like:
 
 Return your analysis as a JSON object with this exact structure:
 {
-    "estimated_hours": <float between 0.5 and 100>,
-    "job_complexity": "<simple|moderate|complex>",
+    "estimatedHours": <float between 0.5 and 100>,
+    "jobComplexity": "<simple|moderate|complex>",
     "reasoning": "<brief explanation of your estimate>",
-    "recommended_actions": ["<action1>", "<action2>"]
+    "recommendedActions": ["<action1>", "<action2>"]
 }
 
 Guidelines:
@@ -216,24 +216,24 @@ Provide accurate time estimate and complexity assessment."""
             analysis = json.loads(response.choices[0].message.content)
             
             # Validate and sanitize the response
-            estimated_hours = float(analysis.get("estimated_hours", 2.0))
-            estimated_hours = max(0.5, min(100.0, estimated_hours))  # Clamp between 0.5 and 100
+            estimatedHours = float(analysis.get("estimatedHours", 2.0))
+            estimatedHours = max(0.5, min(100.0, estimatedHours))  # Clamp between 0.5 and 100
             
-            complexity = analysis.get("job_complexity", "moderate")
+            complexity = analysis.get("jobComplexity", "moderate")
             if complexity not in ["simple", "moderate", "complex"]:
                 complexity = "moderate"
             
             reasoning = analysis.get("reasoning", "Standard electrical work estimate")
-            recommended_actions = analysis.get("recommended_actions", [])
+            recommendedActions = analysis.get("recommendedActions", [])
             
-            if not isinstance(recommended_actions, list):
-                recommended_actions = []
+            if not isinstance(recommendedActions, list):
+                recommendedActions = []
             
             return {
-                "estimated_hours": round(estimated_hours, 1),
-                "job_complexity": complexity,
+                "estimatedHours": round(estimatedHours, 1),
+                "jobComplexity": complexity,
                 "reasoning": reasoning,
-                "recommended_actions": recommended_actions[:5]  # Limit to 5 actions
+                "recommendedActions": recommendedActions[:5]  # Limit to 5 actions
             }
             
         except Exception as e:
@@ -259,10 +259,10 @@ Provide accurate time estimate and complexity assessment."""
             complexity = "moderate"
         
         return {
-            "estimated_hours": hours,
-            "job_complexity": complexity,
+            "estimatedHours": hours,
+            "jobComplexity": complexity,
             "reasoning": "Estimate based on job description keywords (AI service temporarily unavailable)",
-            "recommended_actions": [
+            "recommendedActions": [
                 "Site visit recommended for accurate quote",
                 "Electrical safety testing required"
             ]

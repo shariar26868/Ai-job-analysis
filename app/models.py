@@ -8,10 +8,10 @@ class WorkerDetails(BaseModel):
     email: str
     location: str
     description: str
-    hourly_rate: float
-    call_out_fee: float
+    hourlyRate: float
+    callOutFee: float
     minimum_charge: float
-    emergency_uplift: float  # Percentage (e.g., 0.5 for 50%)
+    emergencyUplift: float  # Percentage (e.g., 0.5 for 50%)
 
 class JobAnalysisRequest(BaseModel):
     """Request model for job analysis"""
@@ -31,26 +31,26 @@ class JobAnalysisRequest(BaseModel):
 
 class WorkerQuote(BaseModel):
     """Quote from a specific worker"""
-    worker_name: str
-    worker_email: str
-    worker_location: str
-    worker_description: str
+    workerName: str
+    workerEmail: str
+    workerLocation: str
+    workerDescription: str
     
-    estimated_hours: float
-    hourly_rate: float
-    call_out_fee: float
-    labour_cost: float
-    emergency_uplift: Optional[float] = None
-    total_quote: float
+    estimatedHours: float
+    hourlyRate: float
+    callOutFee: float
+    labourCost: float
+    emergencyUplift: Optional[float] = None
+    totalQuote: float
     
-    job_complexity: Literal["simple", "moderate", "complex"]
-    match_score: float = Field(
+    jobComplexity: Literal["simple", "moderate", "complex"]
+    matchScore: float = Field(
         ...,
         ge=0,
         le=100,
         description="How well this worker matches the job (0-100)"
     )
-    recommended_actions: List[str] = Field(
+    recommendedActions: List[str] = Field(
         default_factory=list,
         description="Recommended actions"
     )
@@ -60,15 +60,15 @@ class MultipleWorkerQuotesResponse(BaseModel):
     original_description: str
     priority: Literal["standard", "emergency"]
     currency: str = "GBP"
-    estimated_hours: float
-    job_complexity: Literal["simple", "moderate", "complex"]
-    ai_reasoning: str
+    estimatedHours: float
+    jobComplexity: Literal["simple", "moderate", "complex"]
+    aiReasoning: str
     
     worker_quotes: List[WorkerQuote] = Field(
         ...,
         description="List of worker quotes sorted by total price (lowest first)"
     )
-    total_workers: int
+    totalWorkers: int
 
 class JobSuggestion(BaseModel):
     """Individual job suggestion with confidence score"""
@@ -80,7 +80,7 @@ class JobSuggestion(BaseModel):
         ...,
         description="Matched/refined job description"
     )
-    estimated_hours: float = Field(
+    estimatedHours: float = Field(
         ..., 
         ge=0.5, 
         le=100,
@@ -91,11 +91,11 @@ class JobSuggestion(BaseModel):
         ge=0,
         description="Calculated price in GBP"
     )
-    call_out_fee: float
-    labour_cost: float
-    emergency_uplift: Optional[float] = None
+    callOutFee: float
+    labourCost: float
+    emergencyUplift: Optional[float] = None
     
-    job_complexity: Literal["simple", "moderate", "complex"]
+    jobComplexity: Literal["simple", "moderate", "complex"]
     confidence_score: float = Field(
         ...,
         ge=0,
@@ -106,7 +106,7 @@ class JobSuggestion(BaseModel):
         ...,
         description="Why this suggestion matches"
     )
-    recommended_actions: List[str] = Field(
+    recommendedActions: List[str] = Field(
         default_factory=list,
         description="Recommended actions"
     )
@@ -125,21 +125,21 @@ class MultipleJobSuggestionsResponse(BaseModel):
 class JobAnalysisResponse(BaseModel):
     """Response model for job analysis - AI estimates only"""
     job_description: str
-    estimated_hours: float = Field(
+    estimatedHours: float = Field(
         ..., 
         ge=0.5, 
         le=100,
         description="AI estimated hours to complete the job"
     )
-    job_complexity: Literal["simple", "moderate", "complex"] = Field(
+    jobComplexity: Literal["simple", "moderate", "complex"] = Field(
         ...,
         description="Assessed job complexity"
     )
-    ai_reasoning: str = Field(
+    aiReasoning: str = Field(
         ...,
         description="AI's reasoning for the estimates"
     )
-    recommended_actions: list[str] = Field(
+    recommendedActions: list[str] = Field(
         default_factory=list,
         description="Recommended actions or considerations"
     )
@@ -158,12 +158,12 @@ class JobAnalysisResponse(BaseModel):
 
 class QuoteBreakdown(BaseModel):
     """Detailed quote breakdown"""
-    call_out_fee: float
-    hourly_rate: float
-    estimated_hours: float
-    labour_cost: float
-    emergency_uplift: Optional[float] = None
-    total_quote: float
+    callOutFee: float
+    hourlyRate: float
+    estimatedHours: float
+    labourCost: float
+    emergencyUplift: Optional[float] = None
+    totalQuote: float
 
 class HealthCheckResponse(BaseModel):
     """Health check response"""
