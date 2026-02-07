@@ -94,8 +94,6 @@
 # # Create singleton instance
 # pricing_service = PricingService()
 
-
-
 import httpx
 from typing import List, Optional
 from app.config import settings
@@ -125,15 +123,48 @@ class PricingService:
                 
                 response.raise_for_status()
                 
+                # Get the raw response text first to debug
+                raw_data = response.text
+                print(f"📦 Raw response type: {type(raw_data)}")
+                print(f"📦 Raw response preview: {raw_data[:200]}...")
+                
+                # Parse JSON
                 data = response.json()
+                print(f"📊 Parsed data type: {type(data)}")
+                
+                # Handle different response formats
+                if isinstance(data, dict):
+                    # If response is {"data": [...]} format
+                    if "data" in data:
+                        data = data["data"]
+                    # If response is {"workers": [...]} format
+                    elif "workers" in data:
+                        data = data["workers"]
+                    # If response has other wrapper
+                    else:
+                        print(f"📋 Response keys: {data.keys()}")
+                
+                if not isinstance(data, list):
+                    print(f"❌ Unexpected data format: {type(data)}")
+                    print(f"📄 Full response: {data}")
+                    return self._get_fallback_workers()
+                
                 print(f"📊 Total workers in API response: {len(data)}")
                 
                 workers = []
                 
-                for item in data:
+                for idx, item in enumerate(data):
+                    # Debug each item
+                    print(f"\n   📌 Item {idx + 1} type: {type(item)}")
+                    
+                    if not isinstance(item, dict):
+                        print(f"   ⚠️ Skipping non-dict item: {item}")
+                        continue
+                    
                     # Skip inactive workers
                     is_active = item.get("isActive", False)
-                    print(f"   Worker: {item.get('name', 'Unknown')} - Active: {is_active}")
+                    worker_name = item.get("name", "Unknown")
+                    print(f"   Worker: {worker_name} - Active: {is_active}")
                     
                     if not is_active:
                         continue
@@ -149,7 +180,7 @@ class PricingService:
                     else:
                         electrician_id = str(electrician_id)
                     
-                    print(f"   ✓ Adding worker: {item.get('name')} (ID: {electrician_id})")
+                    print(f"   ✓ Adding worker: {worker_name} (ID: {electrician_id})")
                     
                     worker = WorkerDetails(
                         electricianId=electrician_id,
@@ -164,7 +195,7 @@ class PricingService:
                     )
                     workers.append(worker)
                 
-                print(f"✅ Successfully loaded {len(workers)} active workers")
+                print(f"\n✅ Successfully loaded {len(workers)} active workers")
                 return workers
                 
         except httpx.HTTPError as e:
