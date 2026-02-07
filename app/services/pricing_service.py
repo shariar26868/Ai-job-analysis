@@ -96,7 +96,6 @@
 
 
 
-
 import httpx
 from typing import List, Optional
 from app.config import settings
@@ -117,16 +116,26 @@ class PricingService:
             List[WorkerDetails]: List of all active workers
         """
         try:
+            print(f"📡 Fetching workers from: {self.api_url}")
+            
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.get(self.api_url)
+                
+                print(f"✅ API Response Status: {response.status_code}")
+                
                 response.raise_for_status()
                 
                 data = response.json()
+                print(f"📊 Total workers in API response: {len(data)}")
+                
                 workers = []
                 
                 for item in data:
                     # Skip inactive workers
-                    if not item.get("isActive", False):
+                    is_active = item.get("isActive", False)
+                    print(f"   Worker: {item.get('name', 'Unknown')} - Active: {is_active}")
+                    
+                    if not is_active:
                         continue
                     
                     # Convert emergencyUplift from percentage (e.g., 50) to decimal (e.g., 0.50)
@@ -139,6 +148,8 @@ class PricingService:
                         electrician_id = electrician_id["$oid"]
                     else:
                         electrician_id = str(electrician_id)
+                    
+                    print(f"   ✓ Adding worker: {item.get('name')} (ID: {electrician_id})")
                     
                     worker = WorkerDetails(
                         electricianId=electrician_id,
@@ -153,13 +164,17 @@ class PricingService:
                     )
                     workers.append(worker)
                 
+                print(f"✅ Successfully loaded {len(workers)} active workers")
                 return workers
                 
         except httpx.HTTPError as e:
-            print(f"HTTP Error fetching pricing data: {str(e)}")
+            print(f"❌ HTTP Error fetching pricing data: {str(e)}")
+            print(f"   Status code: {e.response.status_code if hasattr(e, 'response') else 'N/A'}")
             return self._get_fallback_workers()
         except Exception as e:
-            print(f"Error fetching pricing data: {str(e)}")
+            print(f"❌ Error fetching pricing data: {str(e)}")
+            import traceback
+            traceback.print_exc()
             return self._get_fallback_workers()
     
     async def get_worker_by_email(self, email: str) -> Optional[WorkerDetails]:
