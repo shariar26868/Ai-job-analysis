@@ -173,3 +173,48 @@ class HealthCheckResponse(BaseModel):
     app_name: str
     version: str
     timestamp: datetime
+
+class ElectricianQuoteRequest(BaseModel):
+    """Request model for electrician self-quote generation"""
+    job_description: str = Field(
+        ...,
+        min_length=10,
+        description="Description of the electrical work"
+    )
+    is_emergency: bool = Field(
+        default=False,
+        description="Whether this is an emergency job"
+    )
+
+class ElectricianQuoteResponse(BaseModel):
+    """Quote generated for a specific electrician"""
+    electricianId: str
+    electricianName: str
+    electricianEmail: str
+    electricianLocation: str
+    job_description: str
+    estimatedHours: float
+    jobComplexity: Literal["simple", "moderate", "complex"]
+    aiReasoning: str
+    callOutFee: float
+    hourlyRate: float
+    labourCost: float
+    emergencyUplift: Optional[float] = None
+    totalQuote: float
+    currency: str = "GBP"
+    priority: Literal["standard", "emergency"]
+    recommendedActions: List[str] = Field(default_factory=list)
+
+class ElectricianSearchResponse(BaseModel):
+    """Response for electrician search by ID"""
+    electricianId: str
+    name: str
+    email: str
+    location: str
+    description: str
+    hourlyRate: float
+    callOutFee: float
+    minimumCharge: float
+    emergencyUplift_percent: float
+    currency: str = "GBP"
+    isActive: bool

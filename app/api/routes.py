@@ -5,7 +5,10 @@ from app.models import (
     JobAnalysisResponse,
     HealthCheckResponse,
     MultipleWorkerQuotesResponse,
-    WorkerQuote
+    WorkerQuote,
+    ElectricianQuoteRequest,
+    ElectricianQuoteResponse,
+    ElectricianSearchResponse
 )
 from app.services.ai_service import ai_service
 from app.services.pricing_service import pricing_service
@@ -216,3 +219,91 @@ async def get_all_workers():
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to fetch workers: {str(e)}"
         )
+
+
+@router.get(
+    "/api/v1/electrician/{electrician_id}",
+    response_model=ElectricianSearchResponse,
+    status_code=status.HTTP_200_OK,
+    tags=["Electrician"]
+)
+async def search_electrician(electrician_id: str):
+    """
+    Search for an electrician by their ID.
+    Fetches data directly from the pricing API.
+    """
+    raw = await pricing_service.get_raw_worker_by_id(electrician_id)
+    if not raw:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Electrician with ID '{electrician_id}' not found"
+        )
+    
+    return ElectricianSearchResponse(
+        electricianId=str(raw.get("electricianId", electrician_id)),
+        name=raw.get("name", ""),
+        email=raw.get("email", ""),
+        location=raw.get("location", ""),
+        description=raw.get("description", ""),
+        hourlyRate=float(raw.get("hourlyRate", 0)),
+        callOutFee=float(raw.get("callOutFee", 0)),
+        minimumCharge=float(raw.get("minimumCharge", 0)),
+        emergencyUplift_percent=float(raw.get("emergencyUplift", 0)),
+        currency=raw.get("currency", "GBP"),
+        isActive=raw.get("isActive", False)
+    )
+
+
+@router.post(
+    "/api/v1/electrician/{electrician_id}/quote",
+    response_model=ElectricianQuoteResponse,
+    status_code=status.HTTP_200_OK,
+    tags=["Electrician"]
+)
+async def electrician_self_quote(electrician_id: str, request: ElectricianQuoteRequest):
+    """
+    Generate a quote for a specific electrician based on a job description.
+    The electrician provides a description and gets back a full quote breakdown.
+    
+    - Fetches the electrician's rates from the pricing API
+    - Uses AI to estimate hours and complexity
+    - Calculates the full quote using the electrician's own rates
+    """
+    # Fetch electrician details
+    worker = await pricing_service.get_worker_by_id(electrician_id)
+    if not worker:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Electrician with ID '{electrician_id}' not found"
+        )
+    
+    # AI analysis
+    ai_analysis = ai_service.analyze_job_description(
+        job_description=request.job_description,
+        is_emergency=request.is_emergency
+    )
+    
+    # Calculate quote using electrician's own rates
+    quote_data = quote_service.calculate_quote_for_worker(
+        worker=worker,
+        estimatedHours=ai_analysis["estimatedHours"],
+        is_emergency=request.is_emergency
+    )
+    
+    return ElectricianQuoteResponse(
+        electricianId=worker.electricianId,
+        electricianName=worker.name,
+        electricianEmail=worker.email,
+        electricianLocation=worker.location,
+        job_description=request.job_description,
+        estimatedHours=quote_data["estimatedHours"],
+        jobComplexity=ai_analysis["jobComplexity"],
+        aiReasoning=ai_analysis["reasoning"],
+        callOutFee=quote_data["callOutFee"],
+        hourlyRate=quote_data["hourlyRate"],
+        labourCost=quote_data["labourCost"],
+        emergencyUplift=quote_data["emergencyUplift"],
+        totalQuote=quote_data["totalQuote"],
+        priority="emergency" if request.is_emergency else "standard",
+        recommendedActions=ai_analysis["recommendedActions"]
+    )

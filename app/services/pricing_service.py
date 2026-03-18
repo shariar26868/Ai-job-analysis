@@ -130,7 +130,8 @@ class PricingService:
     
     async def get_worker_by_id(self, electrician_id: str) -> Optional[WorkerDetails]:
         """
-        Fetch a specific worker by electricianId
+        Fetch a specific worker by electricianId directly from the API
+        Falls back to searching all workers if direct fetch fails.
         
         Args:
             electrician_id: Worker's electrician ID
@@ -138,11 +139,67 @@ class PricingService:
         Returns:
             Optional[WorkerDetails]: Worker details or None if not found
         """
-        workers = await self.get_all_workers()
-        for worker in workers:
-            if worker.electricianId == electrician_id:
-                return worker
-        return None
+        try:
+            # Build single-worker URL: base URL replace /all with /{id}
+            base = self.api_url.rstrip("/")
+            if base.endswith("/all"):
+                base = base[:-4]
+            single_url = f"{base}/{electrician_id}"
+            
+            print(f"📡 Fetching single worker from: {single_url}")
+            
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.get(single_url)
+                response.raise_for_status()
+                data = response.json()
+            
+            # Handle {"success": true, "data": {...}} format
+            item = data.get("data", data) if isinstance(data, dict) else data
+            
+            if not isinstance(item, dict):
+                raise ValueError("Unexpected response format")
+            
+            emergencyUplift_decimal = float(item.get("emergencyUplift", 50)) / 100.0
+            
+            return WorkerDetails(
+                electricianId=str(item.get("electricianId", electrician_id)),
+                name=item.get("name", "Unknown"),
+                email=item.get("email", ""),
+                location=item.get("location", ""),
+                description=item.get("description", ""),
+                hourlyRate=float(item.get("hourlyRate", 100.0)),
+                callOutFee=float(item.get("callOutFee", 65.0)),
+                minimum_charge=float(item.get("minimumCharge", 65.0)),
+                emergencyUplift=emergencyUplift_decimal
+            )
+        except Exception as e:
+            print(f"⚠️ Direct fetch failed ({e}), falling back to search all workers")
+            workers = await self.get_all_workers()
+            for worker in workers:
+                if worker.electricianId == electrician_id:
+                    return worker
+            return None
+    
+    async def get_raw_worker_by_id(self, electrician_id: str) -> Optional[dict]:
+        """
+        Fetch raw worker data dict by electricianId (for search endpoint)
+        """
+        try:
+            base = self.api_url.rstrip("/")
+            if base.endswith("/all"):
+                base = base[:-4]
+            single_url = f"{base}/{electrician_id}"
+            
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.get(single_url)
+                response.raise_for_status()
+                data = response.json()
+            
+            item = data.get("data", data) if isinstance(data, dict) else data
+            return item if isinstance(item, dict) else None
+        except Exception as e:
+            print(f"❌ Error fetching raw worker: {e}")
+            return None
     
     def _get_fallback_workers(self) -> List[WorkerDetails]:
         """
