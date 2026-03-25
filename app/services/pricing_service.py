@@ -94,7 +94,7 @@ class PricingService:
                         description=item.get("description", ""),
                         hourlyRate=float(item.get("hourlyRate", 100.0)),
                         callOutFee=float(item.get("callOutFee", 65.0)),
-                        minimum_charge=float(item.get("minimumCharge", 65.0)),
+                        minimum_charge=float(item.get("minimumCharge") or item.get("callOutFee", 65.0)),
                         emergencyUplift=emergencyUplift_decimal
                     )
                     workers.append(worker)
@@ -169,7 +169,7 @@ class PricingService:
                 description=item.get("description", ""),
                 hourlyRate=float(item.get("hourlyRate", 100.0)),
                 callOutFee=float(item.get("callOutFee", 65.0)),
-                minimum_charge=float(item.get("minimumCharge", 65.0)),
+                minimum_charge=float(item.get("minimumCharge") or item.get("callOutFee", 65.0)),
                 emergencyUplift=emergencyUplift_decimal
             )
         except Exception as e:

@@ -40,8 +40,9 @@ class QuoteService:
         if emergencyUplift:
             totalQuote += emergencyUplift
         
-        # Check minimum charge
-        if totalQuote < worker.minimum_charge:
+        # Enforce minimum charge
+        if worker.minimum_charge and totalQuote < worker.minimum_charge:
+            print(f"⚡ Minimum charge applied for {worker.name}: £{totalQuote} → £{worker.minimum_charge}")
             totalQuote = worker.minimum_charge
         
         return {
@@ -87,6 +88,11 @@ class QuoteService:
         totalQuote = self.callOutFee + labourCost
         if emergencyUplift:
             totalQuote += emergencyUplift
+        
+        # Enforce minimum charge
+        minimum_charge = getattr(settings, 'minimum_charge', 0)
+        if minimum_charge and totalQuote < minimum_charge:
+            totalQuote = minimum_charge
         
         return QuoteBreakdown(
             callOutFee=round(self.callOutFee, 2),
