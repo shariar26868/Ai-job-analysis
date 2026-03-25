@@ -30,10 +30,10 @@ class QuoteService:
         # Calculate labour cost
         labourCost = estimatedHours * worker.hourlyRate
         
-        # Calculate emergency uplift if applicable — always 50% of labour cost
+        # Calculate emergency uplift using worker's own rate
         emergencyUplift = None
         if is_emergency:
-            emergencyUplift = labourCost * 0.5
+            emergencyUplift = labourCost * worker.emergencyUplift
         
         # Calculate total quote
         totalQuote = worker.callOutFee + labourCost
@@ -79,10 +79,10 @@ class QuoteService:
         # Calculate labour cost
         labourCost = estimatedHours * self.base_hourlyRate
         
-        # Calculate emergency uplift if applicable — always 50% of labour cost
+        # Calculate emergency uplift using settings fallback rate
         emergencyUplift = None
         if is_emergency:
-            emergencyUplift = labourCost * 0.5
+            emergencyUplift = labourCost * self.emergencyUplift_percent
         
         # Calculate total quote
         totalQuote = self.callOutFee + labourCost
@@ -120,7 +120,7 @@ class QuoteService:
         }
         
         if breakdown.emergencyUplift:
-            summary["emergencyUplift"] = f"£{breakdown.emergencyUplift} (50% uplift)"
+            summary["emergencyUplift"] = f"£{breakdown.emergencyUplift} (emergency uplift)"
         
         return summary
 
