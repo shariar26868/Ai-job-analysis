@@ -1,5 +1,5 @@
 import json
-from openai import OpenAI
+from openai import OpenAI, AuthenticationError, RateLimitError, APIConnectionError, APITimeoutError
 from app.config import settings
 
 class AIService:
@@ -109,8 +109,20 @@ Provide 2-4 different interpretations sorted by confidence."""
             
             return {"suggestions": validated_suggestions}
             
+        except AuthenticationError as e:
+            print(f"❌ OpenAI Authentication Error - Invalid API key: {str(e)}")
+            return self._get_fallback_suggestions(job_description, is_emergency)
+        except RateLimitError as e:
+            print(f"❌ OpenAI Rate Limit Error - Quota exceeded: {str(e)}")
+            return self._get_fallback_suggestions(job_description, is_emergency)
+        except APIConnectionError as e:
+            print(f"❌ OpenAI Connection Error - Cannot reach API: {str(e)}")
+            return self._get_fallback_suggestions(job_description, is_emergency)
+        except APITimeoutError as e:
+            print(f"❌ OpenAI Timeout Error - Request timed out: {str(e)}")
+            return self._get_fallback_suggestions(job_description, is_emergency)
         except Exception as e:
-            print(f"OpenAI API Error: {str(e)}")
+            print(f"❌ OpenAI Unexpected Error ({type(e).__name__}): {str(e)}")
             return self._get_fallback_suggestions(job_description, is_emergency)
     
     def _get_fallback_suggestions(self, job_description: str, is_emergency: bool) -> dict:
@@ -236,9 +248,20 @@ Provide accurate time estimate and complexity assessment."""
                 "recommendedActions": recommendedActions[:5]  # Limit to 5 actions
             }
             
+        except AuthenticationError as e:
+            print(f"❌ OpenAI Authentication Error - Invalid API key: {str(e)}")
+            return self._get_fallback_estimate(job_description, is_emergency)
+        except RateLimitError as e:
+            print(f"❌ OpenAI Rate Limit Error - Quota exceeded: {str(e)}")
+            return self._get_fallback_estimate(job_description, is_emergency)
+        except APIConnectionError as e:
+            print(f"❌ OpenAI Connection Error - Cannot reach API: {str(e)}")
+            return self._get_fallback_estimate(job_description, is_emergency)
+        except APITimeoutError as e:
+            print(f"❌ OpenAI Timeout Error - Request timed out: {str(e)}")
+            return self._get_fallback_estimate(job_description, is_emergency)
         except Exception as e:
-            print(f"OpenAI API Error: {str(e)}")
-            # Fallback to default values if API fails
+            print(f"❌ OpenAI Unexpected Error ({type(e).__name__}): {str(e)}")
             return self._get_fallback_estimate(job_description, is_emergency)
     
     def _get_fallback_estimate(self, job_description: str, is_emergency: bool) -> dict:
