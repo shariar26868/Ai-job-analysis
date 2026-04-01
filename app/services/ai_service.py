@@ -1,4 +1,5 @@
 import json
+import hashlib
 from openai import OpenAI, AuthenticationError, RateLimitError, APIConnectionError, APITimeoutError
 from app.config import settings
 
@@ -8,6 +9,7 @@ class AIService:
     def __init__(self):
         self.client = OpenAI(api_key=settings.openai_api_key)
         self.model = settings.openai_model
+        self._estimate_cache: dict = {}  # Cache for consistent time estimates
     
     def analyze_job_with_multiple_suggestions(
         self, 
@@ -169,15 +171,14 @@ Provide 2-4 different interpretations sorted by confidence."""
     
     def analyze_job_description(self, job_description: str, is_emergency: bool = False) -> dict:
         """
-        Analyze job description using OpenAI and return structured estimates
-        
-        Args:
-            job_description: The electrical work description
-            is_emergency: Whether this is an emergency job
-            
-        Returns:
-            dict: Structured analysis with estimates
+        Analyze job description using OpenAI and return structured estimates.
+        Results are cached per (job_description, is_emergency) to ensure consistency.
         """
+        # Build a stable cache key from the inputs
+        cache_key = hashlib.md5(f"{job_description.strip().lower()}|{is_emergency}".encode()).hexdigest()
+        if cache_key in self._estimate_cache:
+            print(f"✅ Returning cached estimate for job (key: {cache_key[:8]}...)")
+            return self._estimate_cache[cache_key]
         
         system_prompt = """You are an expert electrical contractor with 20+ years of experience in the UK. 
 Your job is to analyze electrical work descriptions and provide accurate time and complexity estimates.
@@ -241,12 +242,14 @@ Provide accurate time estimate and complexity assessment."""
             if not isinstance(recommendedActions, list):
                 recommendedActions = []
             
-            return {
+            result = {
                 "estimatedHours": round(estimatedHours, 1),
                 "jobComplexity": complexity,
                 "reasoning": reasoning,
                 "recommendedActions": recommendedActions[:5]  # Limit to 5 actions
             }
+            self._estimate_cache[cache_key] = result
+            return result
             
         except AuthenticationError as e:
             print(f"❌ OpenAI Authentication Error - Invalid API key: {str(e)}")

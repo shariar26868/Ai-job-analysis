@@ -148,6 +148,7 @@ async def get_worker_quotes(request: JobAnalysisRequest):
                 callOutFee=quote_data["callOutFee"],
                 labourCost=quote_data["labourCost"],
                 emergencyUplift=quote_data["emergencyUplift"],
+                minimumChargeAdjustment=quote_data["minimumChargeAdjustment"],
                 totalQuote=quote_data["totalQuote"],
                 jobComplexity=ai_analysis["jobComplexity"],
                 matchScore=85.0,  # Default match score, can be enhanced later
@@ -303,6 +304,7 @@ async def electrician_self_quote(electrician_id: str, request: ElectricianQuoteR
         hourlyRate=quote_data["hourlyRate"],
         labourCost=quote_data["labourCost"],
         emergencyUplift=quote_data["emergencyUplift"],
+        minimumChargeAdjustment=quote_data["minimumChargeAdjustment"],
         totalQuote=quote_data["totalQuote"],
         priority="emergency" if request.is_emergency else "standard",
         recommendedActions=ai_analysis["recommendedActions"]
