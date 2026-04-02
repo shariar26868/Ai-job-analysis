@@ -41,12 +41,12 @@ class QuoteService:
             totalQuote += emergencyUplift
         
         # Enforce minimum charge
-        minimum_charge_adjustment = None
+        minimum_charge_adjustment = 0.0
         if worker.minimum_charge and totalQuote < worker.minimum_charge:
             minimum_charge_adjustment = round(worker.minimum_charge - totalQuote, 2)
             print(f"⚡ Minimum charge applied for {worker.name}: £{totalQuote} → £{worker.minimum_charge} (adjustment: £{minimum_charge_adjustment})")
             totalQuote = worker.minimum_charge
-        
+
         return {
             "electricianId": worker.electricianId,
             "workerName": worker.name,
