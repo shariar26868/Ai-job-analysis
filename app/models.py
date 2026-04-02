@@ -66,6 +66,7 @@ class MultipleWorkerQuotesResponse(BaseModel):
     estimatedHours: float
     jobComplexity: Literal["simple", "moderate", "complex"]
     aiReasoning: str
+    customer_email: Optional[str] = None
     
     worker_quotes: List[WorkerQuote] = Field(
         ...,
@@ -128,6 +129,7 @@ class MultipleJobSuggestionsResponse(BaseModel):
 class JobAnalysisResponse(BaseModel):
     """Response model for job analysis - AI estimates only"""
     job_description: str
+    customer_email: Optional[str] = None
     estimatedHours: float = Field(
         ..., 
         ge=0.5, 

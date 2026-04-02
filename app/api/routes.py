@@ -72,6 +72,7 @@ async def quick_estimate(request: JobAnalysisRequest):
         # Build response
         response = JobAnalysisResponse(
             job_description=request.job_description,
+            customer_email=request.customer_email,
             estimatedHours=ai_analysis["estimatedHours"],
             jobComplexity=ai_analysis["jobComplexity"],
             aiReasoning=ai_analysis["reasoning"],
@@ -167,6 +168,7 @@ async def get_worker_quotes(request: JobAnalysisRequest):
             estimatedHours=ai_analysis["estimatedHours"],
             jobComplexity=ai_analysis["jobComplexity"],
             aiReasoning=ai_analysis["reasoning"],
+            customer_email=request.customer_email,
             worker_quotes=worker_quotes,
             totalWorkers=len(worker_quotes)
         )
