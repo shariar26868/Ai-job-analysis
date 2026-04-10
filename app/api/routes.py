@@ -224,7 +224,7 @@ async def get_all_workers():
                     "description": w.description,
                     "hourlyRate": w.hourlyRate,
                     "callOutFee": w.callOutFee,
-                    "minimum_charge": w.minimum_charge,
+                    "minimumCharge": w.minimum_charge,
                     "emergencyUplift_percent": w.emergencyUplift * 100
                 }
                 for w in workers
