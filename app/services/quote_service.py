@@ -102,6 +102,7 @@ class QuoteService:
             estimatedHours=round(estimatedHours, 1),
             labourCost=round(labourCost, 2),
             emergencyUplift=round(emergencyUplift, 2) if emergencyUplift else None,
+            minimumCharge=round(minimum_charge, 2),
             totalQuote=round(totalQuote, 2)
         )
     

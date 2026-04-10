@@ -43,7 +43,7 @@ class WorkerQuote(BaseModel):
     callOutFee: float
     labourCost: float
     emergencyUplift: Optional[float] = None
-    minimumCharge: Optional[float] = None
+    minimumCharge: float = 0.0
     totalQuote: float
     
     jobComplexity: Literal["simple", "moderate", "complex"]
@@ -168,6 +168,7 @@ class QuoteBreakdown(BaseModel):
     estimatedHours: float
     labourCost: float
     emergencyUplift: Optional[float] = None
+    minimumCharge: float = 0.0
     totalQuote: float
 
 class HealthCheckResponse(BaseModel):
@@ -203,7 +204,7 @@ class ElectricianQuoteResponse(BaseModel):
     hourlyRate: float
     labourCost: float
     emergencyUplift: Optional[float] = None
-    minimumCharge: Optional[float] = None
+    minimumCharge: float = 0.0
     totalQuote: float
     currency: str = "GBP"
     priority: Literal["standard", "emergency"]
