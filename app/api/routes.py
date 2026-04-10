@@ -194,6 +194,20 @@ async def get_pricing_info():
         "currency": "GBP"
     }
 
+@router.get("/api/v1/debug/worker/{electrician_id}", tags=["Debug"])
+async def debug_worker_raw(electrician_id: str):
+    """Debug: show raw API response for a worker to check field names"""
+    raw = await pricing_service.get_raw_worker_by_id(electrician_id)
+    if not raw:
+        raise HTTPException(status_code=404, detail="Worker not found")
+    return {
+        "raw_fields": list(raw.keys()),
+        "minimumCharge_raw": raw.get("minimumCharge"),
+        "minimum_charge_raw": raw.get("minimum_charge"),
+        "minCharge_raw": raw.get("minCharge"),
+        "full_raw": raw
+    }
+
 @router.get("/api/v1/workers", tags=["Workers"])
 async def get_all_workers():
     """Get all active workers from the pricing API"""
