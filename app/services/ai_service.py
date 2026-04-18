@@ -180,31 +180,67 @@ Provide 2-4 different interpretations sorted by confidence."""
             print(f"✅ Returning cached estimate for job (key: {cache_key[:8]}...)")
             return self._estimate_cache[cache_key]
         
-        system_prompt = """You are an expert electrical contractor with 20+ years of experience in the UK. 
-Your job is to analyze electrical work descriptions and provide accurate time and complexity estimates.
+        system_prompt = """You are an expert electrical contractor with 20+ years of experience in the UK.
+Your job is to analyze electrical work descriptions and provide accurate time estimates for the ACTUAL WORK only.
+The call-out fee is charged separately — do NOT include travel or call-out time in estimatedHours.
 
-Consider factors like:
-- Scope of work (number of items to install/repair)
-- Complexity (simple socket replacement vs rewiring)
-- Access difficulty (ceiling work, outdoor work)
-- Safety requirements (testing, certification)
-- Material requirements
-- Travel and setup time
+IMPORTANT: estimatedHours means hands-on work time only. The billing system adds the call-out fee on top automatically.
+
+Use these UK electrician benchmarks as your reference:
+
+SIMPLE jobs (0.5 – 2 hours):
+- Replace 1 socket or switch: 0.5h
+- Replace 2–4 sockets or switches: 1h
+- Replace 5–8 sockets or switches: 1.5–2h
+- Replace a single light fitting: 0.5h
+- Replace 2–4 light fittings: 1–1.5h
+- Install 1–2 LED downlights: 1h
+- Fix a tripped breaker / reset fuse: 0.5h
+- Replace a single outdoor light: 1h
+
+MODERATE jobs (2 – 6 hours):
+- Install 5–10 LED downlights: 2–3h
+- Install 10–20 LED downlights: 3–5h
+- Replace multiple sockets in one room (8–12): 2–3h
+- Install a new circuit (single room): 3–4h
+- Fault finding and repair (unknown fault): 2–4h
+- Install outdoor socket or garden lighting: 2–3h
+- Install EV charger (standard): 3–4h
+- Replace bathroom extractor fan: 1.5–2h
+- Install security lighting (2–3 lights): 2–3h
+
+COMPLEX jobs (6+ hours):
+- Replace consumer unit / fuse board: 6–8h
+- Rewire a single room: 4–6h
+- Rewire a 1-bed flat: 10–14h
+- Rewire a 2-bed house: 14–18h
+- Rewire a 3-bed house: 20–28h
+- Rewire a 4-bed house: 28–36h
+- Install new distribution board: 6–8h
+- Full electrical inspection (EICR) 1-bed: 3–4h
+- Full electrical inspection (EICR) 3-bed: 5–7h
+- Install solar panel system: 8–12h
+
+QUANTITY RULES — always scale by quantity mentioned:
+- If description says "a socket" or "one socket" → treat as 1 item
+- If description says "sockets" without a number → assume 4–6 items
+- If description says "throughout the house" or "whole house" → treat as complex full-scope
+- If description says "a few" → assume 3–4 items
+- If description says "several" → assume 5–7 items
 
 Return your analysis as a JSON object with this exact structure:
 {
     "estimatedHours": <float between 0.5 and 100>,
     "jobComplexity": "<simple|moderate|complex>",
-    "reasoning": "<brief explanation of your estimate>",
+    "reasoning": "<brief explanation referencing the specific benchmark used>",
     "recommendedActions": ["<action1>", "<action2>"]
 }
 
-Guidelines:
-- Simple jobs (socket replacement, light fixture): 0.5-2 hours
-- Moderate jobs (multiple fixtures, minor repairs): 2-6 hours
-- Complex jobs (rewiring, consumer unit, outdoor): 6+ hours
-- Always add buffer time for testing and certification
-- Emergency work should already be flagged, don't add extra time for that"""
+Rules:
+- Always pick the closest benchmark and scale by quantity
+- Never estimate below 0.5h
+- For vague descriptions with no quantity, use the mid-range of the relevant benchmark
+- Emergency flag does NOT change the hours — it only affects pricing, which is handled separately"""
 
         user_prompt = f"""Analyze this electrical job:
 
@@ -269,25 +305,116 @@ Provide accurate time estimate and complexity assessment."""
     
     def _get_fallback_estimate(self, job_description: str, is_emergency: bool) -> dict:
         """
-        Provide fallback estimates if OpenAI API fails
+        Provide fallback estimates if OpenAI API fails.
+        Uses quantity-aware, scope-based estimation aligned with UK electrician benchmarks.
         """
         description_lower = job_description.lower()
-        
-        # Simple keyword-based estimation
-        if any(word in description_lower for word in ['socket', 'plug', 'light', 'bulb', 'switch']):
-            hours = 1.5
-            complexity = "simple"
-        elif any(word in description_lower for word in ['rewire', 'consumer unit', 'fuse box', 'panel']):
-            hours = 12.0
-            complexity = "complex"
+
+        # --- Quantity detection ---
+        import re
+        quantity = 1
+        # Look for explicit numbers (e.g. "5 sockets", "install 3 lights")
+        number_match = re.search(r'\b(\d+)\b', description_lower)
+        if number_match:
+            quantity = int(number_match.group(1))
+        elif any(w in description_lower for w in ['few', 'a few']):
+            quantity = 3
+        elif any(w in description_lower for w in ['several']):
+            quantity = 6
+        elif any(w in description_lower for w in ['throughout', 'whole house', 'entire house', 'full house']):
+            quantity = 99  # signals whole-house scope
+
+        # --- Whole-house / full rewire ---
+        if quantity == 99 or any(w in description_lower for w in ['rewire', 'full rewire', 'complete rewire']):
+            if any(w in description_lower for w in ['1 bed', '1-bed', 'one bed', 'flat', 'apartment']):
+                hours, complexity = 12.0, "complex"
+            elif any(w in description_lower for w in ['2 bed', '2-bed', 'two bed']):
+                hours, complexity = 16.0, "complex"
+            elif any(w in description_lower for w in ['3 bed', '3-bed', 'three bed']):
+                hours, complexity = 24.0, "complex"
+            elif any(w in description_lower for w in ['4 bed', '4-bed', 'four bed']):
+                hours, complexity = 32.0, "complex"
+            else:
+                hours, complexity = 20.0, "complex"
+
+        # --- Consumer unit / fuse board ---
+        elif any(w in description_lower for w in ['consumer unit', 'fuse box', 'fuse board', 'distribution board', 'fuseboard']):
+            hours, complexity = 7.0, "complex"
+
+        # --- EV charger ---
+        elif any(w in description_lower for w in ['ev charger', 'electric vehicle', 'car charger']):
+            hours, complexity = 3.5, "moderate"
+
+        # --- EICR / inspection ---
+        elif any(w in description_lower for w in ['eicr', 'inspection', 'electrical report', 'condition report']):
+            hours, complexity = 5.0, "moderate"
+
+        # --- Sockets / plugs ---
+        elif any(w in description_lower for w in ['socket', 'plug', 'outlet', 'power point']):
+            if quantity == 1:
+                hours, complexity = 0.5, "simple"
+            elif quantity <= 4:
+                hours, complexity = 1.0, "simple"
+            elif quantity <= 8:
+                hours, complexity = 1.5, "simple"
+            elif quantity <= 12:
+                hours, complexity = 2.5, "moderate"
+            else:
+                hours, complexity = 4.0, "moderate"
+
+        # --- Downlights / spotlights ---
+        elif any(w in description_lower for w in ['downlight', 'spotlight', 'recessed light', 'can light']):
+            if quantity <= 2:
+                hours, complexity = 1.0, "simple"
+            elif quantity <= 5:
+                hours, complexity = 2.0, "moderate"
+            elif quantity <= 10:
+                hours, complexity = 3.0, "moderate"
+            elif quantity <= 20:
+                hours, complexity = 4.5, "moderate"
+            else:
+                hours, complexity = 6.0, "complex"
+
+        # --- General lighting / light fittings ---
+        elif any(w in description_lower for w in ['light', 'lighting', 'bulb', 'fitting', 'fixture', 'led']):
+            if quantity == 1:
+                hours, complexity = 0.5, "simple"
+            elif quantity <= 4:
+                hours, complexity = 1.5, "simple"
+            elif quantity <= 8:
+                hours, complexity = 2.5, "moderate"
+            else:
+                hours, complexity = 4.0, "moderate"
+
+        # --- Switches ---
+        elif any(w in description_lower for w in ['switch', 'dimmer']):
+            if quantity <= 2:
+                hours, complexity = 0.5, "simple"
+            elif quantity <= 6:
+                hours, complexity = 1.0, "simple"
+            else:
+                hours, complexity = 2.0, "moderate"
+
+        # --- Fault finding ---
+        elif any(w in description_lower for w in ['fault', 'tripping', 'trip', 'not working', 'no power', 'dead']):
+            hours, complexity = 2.5, "moderate"
+
+        # --- Outdoor / garden ---
+        elif any(w in description_lower for w in ['outdoor', 'garden', 'external', 'outside', 'security light']):
+            hours, complexity = 2.5, "moderate"
+
+        # --- New circuit ---
+        elif any(w in description_lower for w in ['new circuit', 'extra circuit', 'additional circuit']):
+            hours, complexity = 3.5, "moderate"
+
+        # --- Default fallback ---
         else:
-            hours = 3.5
-            complexity = "moderate"
-        
+            hours, complexity = 3.0, "moderate"
+
         return {
             "estimatedHours": hours,
             "jobComplexity": complexity,
-            "reasoning": "Estimate based on job description keywords (AI service temporarily unavailable)",
+            "reasoning": "Estimate based on UK electrician benchmarks (AI service temporarily unavailable)",
             "recommendedActions": [
                 "Site visit recommended for accurate quote",
                 "Electrical safety testing required"
