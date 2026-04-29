@@ -12,7 +12,7 @@ class WorkerDetails(BaseModel):
     hourlyRate: float
     callOutFee: float
     minimum_charge: float
-    emergencyUplift: float  # Percentage (e.g., 0.5 for 50%)
+    emergencyUplift: float  # Flat amount (e.g., 150.0 for £150)
 
 class JobAnalysisRequest(BaseModel):
     """Request model for job analysis"""
@@ -220,6 +220,6 @@ class ElectricianSearchResponse(BaseModel):
     hourlyRate: float
     callOutFee: float
     minimumCharge: float
-    emergencyUplift_percent: float
+    emergencyUplift_amount: float
     currency: str = "GBP"
     isActive: bool

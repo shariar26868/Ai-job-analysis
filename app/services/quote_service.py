@@ -7,7 +7,7 @@ class QuoteService:
     
     def __init__(self):
         self.base_hourlyRate = settings.base_hourlyRate
-        self.emergencyUplift_percent = settings.emergencyUplift
+        self.emergencyUplift_amount = settings.emergencyUplift
         self.callOutFee = settings.callOutFee
     
     def calculate_quote_for_worker(
@@ -33,7 +33,7 @@ class QuoteService:
         # Calculate emergency uplift using worker's own rate
         emergencyUplift = None
         if is_emergency:
-            emergencyUplift = labourCost * worker.emergencyUplift
+            emergencyUplift = worker.emergencyUplift
         
         # Calculate total quote
         totalQuote = worker.callOutFee + labourCost
@@ -84,7 +84,7 @@ class QuoteService:
         # Calculate emergency uplift using settings fallback rate
         emergencyUplift = None
         if is_emergency:
-            emergencyUplift = labourCost * self.emergencyUplift_percent
+            emergencyUplift = self.emergencyUplift_amount
         
         # Calculate total quote
         totalQuote = self.callOutFee + labourCost

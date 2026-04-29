@@ -190,7 +190,7 @@ async def get_pricing_info():
     return {
         "base_hourlyRate": settings.base_hourlyRate,
         "callOutFee": settings.callOutFee,
-        "emergencyUplift_percent": settings.emergencyUplift * 100,
+        "emergencyUplift_amount": settings.emergencyUplift,
         "currency": "GBP"
     }
 
@@ -225,7 +225,7 @@ async def get_all_workers():
                     "hourlyRate": w.hourlyRate,
                     "callOutFee": w.callOutFee,
                     "minimumCharge": w.minimum_charge,
-                    "emergencyUplift_percent": w.emergencyUplift * 100
+                    "emergencyUplift_amount": w.emergencyUplift
                 }
                 for w in workers
             ]
@@ -265,7 +265,7 @@ async def search_electrician(electrician_id: str):
         hourlyRate=float(raw.get("hourlyRate", 0)),
         callOutFee=float(raw.get("callOutFee", 0)),
         minimumCharge=float(raw.get("minimumCharge", 0)),
-        emergencyUplift_percent=float(raw.get("emergencyUplift", 0)),
+        emergencyUplift_amount=float(raw.get("emergencyUplift", 0)),
         currency=raw.get("currency", "GBP"),
         isActive=raw.get("isActive", False)
     )

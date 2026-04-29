@@ -73,9 +73,8 @@ class PricingService:
                     if not is_active:
                         continue
                     
-                    # Convert emergencyUplift from percentage (e.g., 50) to decimal (e.g., 0.50)
-                    emergencyUplift_percent = item.get("emergencyUplift", 50)
-                    emergencyUplift_decimal = emergencyUplift_percent / 100.0
+                    # Get emergencyUplift as a flat amount
+                    emergencyUplift_amount = float(item.get("emergencyUplift", 150.0))
                     
                     # Handle electricianId which can be string or ObjectId
                     electrician_id = item.get("electricianId", "")
@@ -95,7 +94,7 @@ class PricingService:
                         hourlyRate=float(item.get("hourlyRate", 100.0)),
                         callOutFee=float(item.get("callOutFee", 65.0)),
                         minimum_charge=float(item.get("minimumCharge") or item.get("callOutFee", 65.0)),
-                        emergencyUplift=emergencyUplift_decimal
+                        emergencyUplift=emergencyUplift_amount
                     )
                     workers.append(worker)
                 
@@ -159,7 +158,7 @@ class PricingService:
             if not isinstance(item, dict):
                 raise ValueError("Unexpected response format")
             
-            emergencyUplift_decimal = float(item.get("emergencyUplift", 50)) / 100.0
+            emergencyUplift_amount = float(item.get("emergencyUplift", 150.0))
             
             return WorkerDetails(
                 electricianId=str(item.get("electricianId", electrician_id)),
@@ -170,7 +169,7 @@ class PricingService:
                 hourlyRate=float(item.get("hourlyRate", 100.0)),
                 callOutFee=float(item.get("callOutFee", 65.0)),
                 minimum_charge=float(item.get("minimumCharge") or item.get("callOutFee", 65.0)),
-                emergencyUplift=emergencyUplift_decimal
+                emergencyUplift=emergencyUplift_amount
             )
         except Exception as e:
             print(f"⚠️ Direct fetch failed ({e}), falling back to search all workers")

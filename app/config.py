@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     
     # Business Logic Configuration
     base_hourlyRate: float = 100.0  # £100 per hour base rate
-    emergencyUplift: float = 0.50  # 50% extra for emergency
+    emergencyUplift: float = 150.0  # £150 flat extra for emergency
     callOutFee: float = 65.0  # £65 call-out fee
     
     # External Pricing API Configuration
