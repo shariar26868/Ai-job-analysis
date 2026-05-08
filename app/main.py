@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from app.config import settings
 from app.api.routes import router
+from app.services.database_service import database_service
 
 # Create FastAPI application
 app = FastAPI(
@@ -46,12 +47,21 @@ async def startup_event():
     print(f"🔑 OpenAI API configured: {'Yes' if settings.openai_api_key else 'No'}")
     print(f"🌐 CORS origins: {', '.join(settings.cors_origins)}")
     print(f"💰 Pricing API: {settings.pricing_api_url}")
+    
+    # Connect to MongoDB
+    try:
+        await database_service.connect()
+        print("✅ Database connection established")
+    except Exception as e:
+        print(f"⚠️ Database connection failed: {str(e)}")
+        print("   Running in degraded mode - quote persistence unavailable")
 
 # Shutdown event
 @app.on_event("shutdown")
 async def shutdown_event():
     """Run on application shutdown"""
     print(f"🛑 {settings.app_name} shutting down...")
+    await database_service.disconnect()
 
 if __name__ == "__main__":
     import uvicorn

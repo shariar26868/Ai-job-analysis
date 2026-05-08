@@ -222,4 +222,57 @@ class ElectricianSearchResponse(BaseModel):
     minimumCharge: float
     emergencyUplift_amount: float
     currency: str = "GBP"
+    isActive: bool = False
+
+
+class SavedQuote(BaseModel):
+    """Quote saved to database"""
+    id: Optional[str] = None  # MongoDB _id
+    electricianId: str
+    electricianName: str
+    electricianEmail: str
+    job_description: str
+    estimatedHours: float
+    jobComplexity: Literal["simple", "moderate", "complex"]
+    callOutFee: float
+    hourlyRate: float
+    labourCost: float
+    emergencyUplift: Optional[float] = None
+    minimumCharge: float
+    totalQuote: float
+    isEmergency: bool = False
+    status: Literal["pending", "accepted", "rejected"] = "pending"
+    createdAt: datetime = Field(default_factory=datetime.now)
+    updatedAt: datetime = Field(default_factory=datetime.now)
+    customerEmail: Optional[str] = None
+    aiReasoning: Optional[str] = None
+
+
+class QuoteUpdateRequest(BaseModel):
+    """Request to update quote status"""
+    status: Literal["accepted", "rejected"]
+    notes: Optional[str] = None
+
+
+class QuoteResponse(BaseModel):
+    """Response for saved quote"""
+    id: str
+    electricianId: str
+    electricianName: str
+    electricianEmail: str
+    job_description: str
+    estimatedHours: float
+    jobComplexity: Literal["simple", "moderate", "complex"]
+    callOutFee: float
+    hourlyRate: float
+    labourCost: float
+    emergencyUplift: Optional[float] = None
+    minimumCharge: float
+    totalQuote: float
+    isEmergency: bool
+    status: Literal["pending", "accepted", "rejected"]
+    createdAt: datetime
+    updatedAt: datetime
+    customerEmail: Optional[str] = None
+    aiReasoning: Optional[str] = None
     isActive: bool
